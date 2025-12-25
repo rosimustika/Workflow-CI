@@ -9,39 +9,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # =========================
+      # CHECKOUT CODE
+      # =========================
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # =========================
+      # SETUP PYTHON
+      # =========================
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # =========================
+      # INSTALL DEPENDENCIES
+      # =========================
       - name: Install dependencies
         run: |
           pip install mlflow scikit-learn numpy
 
+      # =========================
+      # RUN MLFLOW PROJECT (CI)
+      # =========================
       - name: Run MLflow Project
         run: |
           cd MLProject
           mlflow run . --env-manager=local
 
       # =========================
-      # ADVANCED (WAJIB)
+      # BUILD DOCKER IMAGE (ADVANCED)
       # =========================
-
       - name: Build Docker Image with MLflow
         run: |
           cd MLProject
-          mlflow build-docker \
-            -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci \
-            .
+          RUN_ID=$(ls mlruns/0 | tail -n 1)
+          mlflow models build-docker \
+            -m mlruns/0/$RUN_ID/artifacts/model \
+            -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci
 
+      # =========================
+      # LOGIN DOCKER HUB
+      # =========================
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
             -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+      # =========================
+      # PUSH DOCKER IMAGE
+      # =========================
       - name: Push Docker Image
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci
