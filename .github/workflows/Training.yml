@@ -55,7 +55,7 @@ jobs:
           # Build Docker image dari MLflow Model
           mlflow models build-docker \
             -m runs:/$RUN_ID/model \
-            -n rosimustikasari/loan-approval-ci
+            -n rosimustika/loan-approval-ci
 
       # =========================
       # LOGIN DOCKER HUB
