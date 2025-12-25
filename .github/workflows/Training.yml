@@ -44,7 +44,9 @@ jobs:
       - name: Build Docker Image with MLflow
         run: |
           cd MLProject
-          RUN_ID=$(ls mlruns/0 | tail -n 1)
+          RUN_ID=$(ls -td mlruns/0/* | head -n 1 | xargs basename)
+          echo "Using RUN_ID=$RUN_ID"
+
           mlflow models build-docker \
             -m mlruns/0/$RUN_ID/artifacts/model \
             -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci
