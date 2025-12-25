@@ -39,23 +39,23 @@ jobs:
           mlflow run . --env-manager=local
 
       # =========================
-      # BUILD DOCKER IMAGE (FINAL FIX)
+      # BUILD DOCKER IMAGE (ADVANCED)
       # =========================
       - name: Build Docker Image with MLflow
         run: |
           cd MLProject
 
-          # Ambil RUN_ID terbaru secara BENAR
+          # Ambil RUN_ID terbaru
           RUN_ID=$(ls -td mlruns/0/* | head -n 1 | xargs basename)
           echo "Using RUN_ID=$RUN_ID"
 
-          # Debug: pastikan model ada
+          # Pastikan model ada
           ls mlruns/0/$RUN_ID/artifacts
 
-          # Build Docker dari MLflow Model
+          # Build Docker image dari MLflow Model
           mlflow models build-docker \
             -m runs:/$RUN_ID/model \
-            -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci
+            -n rosimustikasari/loan-approval-ci
 
       # =========================
       # LOGIN DOCKER HUB
@@ -70,4 +70,4 @@ jobs:
       # =========================
       - name: Push Docker Image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci
+          docker push rosimustika/loan-approval-ci
