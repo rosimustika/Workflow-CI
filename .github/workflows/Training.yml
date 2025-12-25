@@ -9,14 +9,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # =========================
+      # CHECKOUT CODE
+      # =========================
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # =========================
+      # SETUP PYTHON
+      # =========================
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # =========================
+      # INSTALL DEPENDENCIES
+      # =========================
       - name: Install dependencies
         run: |
           pip install mlflow scikit-learn numpy
@@ -30,14 +39,20 @@ jobs:
           mlflow run . --env-manager=local
 
       # =========================
-      # BUILD DOCKER IMAGE (FIX)
+      # BUILD DOCKER IMAGE (FINAL FIX)
       # =========================
       - name: Build Docker Image with MLflow
         run: |
           cd MLProject
-          RUN_ID=$(mlflow runs list --experiment-id 0 --output-format csv | tail -n 1 | cut -d',' -f1)
+
+          # Ambil RUN_ID terbaru secara BENAR
+          RUN_ID=$(ls -td mlruns/0/* | head -n 1 | xargs basename)
           echo "Using RUN_ID=$RUN_ID"
 
+          # Debug: pastikan model ada
+          ls mlruns/0/$RUN_ID/artifacts
+
+          # Build Docker dari MLflow Model
           mlflow models build-docker \
             -m runs:/$RUN_ID/model \
             -n ${{ secrets.DOCKER_USERNAME }}/loan-approval-ci
